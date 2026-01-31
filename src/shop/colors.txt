@@ -1,0 +1,29 @@
+Color Palette (Total: 4)
+#3D2817 - Dark Brown (for side headings and boldness)
+
+Used in: Main headings, bold text, dark elements
+#6B4423 - Coffee Brown (for text)
+
+Used in: Regular text, icons, secondary elements
+#E8DCC4 - Cream/Beige (for light background and highlighting)
+
+Used in: Cards background, highlights, badges, subtle backgrounds
+#FAF7F2 - Light Cream (for full background)
+
+Used in: Page background, main background color
+Additional Colors (jo design ke liye necessary the):
+#FFFFFF - White
+
+Used in: Card backgrounds, modals, header
+#000000 - Black (with opacity)
+
+Used in: Modal overlay (inset-0 bg-black/70)
+Red shades (for errors and delete actions):
+
+#DC2626 / red-600
+#B91C1C / red-700
+Green shades (for success states):
+
+#16A34A / green-600
+#15803D / green-700
+#F0FDF4 / green-100
