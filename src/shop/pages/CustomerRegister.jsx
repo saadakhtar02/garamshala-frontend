@@ -54,14 +54,7 @@ function CustomerRegister() {
     e.preventDefault();
     
     if (validateForm()) {
-      localStorage.setItem('customerData', JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        xp: 0
-      }));
-      
-      alert('Registration successful! Please login.');
+      // Static navigation - just go to login after validation
       navigate('/login');
     }
   }

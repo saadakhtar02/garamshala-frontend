@@ -115,9 +115,9 @@ function CustomerMenu() {
     }
   ];
 
-  const [cart, setCart] = useState(JSON.parse(localStorage.getItem('cart')) || []);
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [cartItems, setCartItems] = useState({});
 
   const categories = ['All', ...new Set(menuItems.map(item => item.category))];
   const categoryRefs = useRef({});
@@ -136,45 +136,40 @@ function CustomerMenu() {
     }
   }
 
-  function addToCart(item) {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
-    let newCart;
-    if (existingItem) {
-      newCart = cart.map(cartItem =>
-        cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
-      );
-    } else {
-      newCart = [...cart, { ...item, quantity: 1 }];
-    }
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
+  function addToCart(itemId) {
+    setCartItems(prev => ({
+      ...prev,
+      [itemId]: 1
+    }));
   }
 
   function increaseQuantity(itemId) {
-    const newCart = cart.map(item =>
-      item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
+    setCartItems(prev => ({
+      ...prev,
+      [itemId]: (prev[itemId] || 0) + 1
+    }));
   }
 
   function decreaseQuantity(itemId) {
-    const item = cart.find(item => item.id === itemId);
-    let newCart;
-    if (item.quantity === 1) {
-      newCart = cart.filter(item => item.id !== itemId);
-    } else {
-      newCart = cart.map(item =>
-        item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item
-      );
-    }
-    setCart(newCart);
-    localStorage.setItem('cart', JSON.stringify(newCart));
+    setCartItems(prev => {
+      const newQuantity = (prev[itemId] || 0) - 1;
+      if (newQuantity <= 0) {
+        const { [itemId]: removed, ...rest } = prev;
+        return rest;
+      }
+      return {
+        ...prev,
+        [itemId]: newQuantity
+      };
+    });
   }
 
-  function getItemQuantity(itemId) {
-    const item = cart.find(item => item.id === itemId);
-    return item ? item.quantity : 0;
+  function isInCart(itemId) {
+    return cartItems[itemId] && cartItems[itemId] > 0;
+  }
+
+  function getQuantity(itemId) {
+    return cartItems[itemId] || 0;
   }
 
   return (
@@ -203,70 +198,67 @@ function CustomerMenu() {
 
             {/* Items Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {items.map(item => {
-                const quantity = getItemQuantity(item.id);
-                return (
-                  <div key={item.id} className="bg-white rounded-lg shadow-lg overflow-hidden border border-[#E8DCC4] hover:shadow-xl transition-all duration-300">
+              {items.map(item => (
+                <div key={item.id} className="bg-white rounded-lg shadow-lg overflow-hidden border border-[#E8DCC4] hover:shadow-xl transition-all duration-300">
 
-                    {/* Image */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      <div className="absolute top-3 right-3 bg-[#E8DCC4] text-[#3D2817] px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
-                        <Star className="w-4 h-4 fill-current" />
-                        <span>{item.xp} XP</span>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-4">
-                      <h3 className="text-xl font-bold text-[#3D2817] mb-2">{item.name}</h3>
-
-                      {/* Description - 2 lines with ellipsis */}
-                      <p className="text-sm text-[#6B4423] mb-2 line-clamp-2">{item.description}</p>
-
-                      {/* More Details Button */}
-                      <button
-                        onClick={() => setSelectedItem(item)}
-                        className="flex w-full flex-row-reverse items-center text-sm text-[#6B4423] hover:text-[#3D2817] mb-3 transition"
-                      >
-                        <span className="underline">More Details</span>
-                        <Info className="w-4 h-4 mr-1" />
-                      </button>
-
-                      {/* Price */}
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-2xl font-bold text-[#6B4423]">₹{item.price}</span>
-                      </div>
-
-                      {/* Add to Cart / Quantity */}
-                      {quantity === 0 ? (
-                        <button
-                          onClick={() => addToCart(item)}
-                          className="w-full bg-[#6B4423] text-white py-2 rounded-lg hover:bg-[#3D2817] transition font-semibold"
-                        >
-                          Add to Cart
-                        </button>
-                      ) : (
-                        <div className="flex items-center justify-between bg-[#E8DCC4] rounded-lg p-2">
-                          <button
-                            onClick={() => decreaseQuantity(item.id)}
-                            className="bg-white text-[#6B4423] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <span className="text-[#3D2817] font-bold text-lg">{quantity}</span>
-                          <button
-                            onClick={() => increaseQuantity(item.id)}
-                            className="bg-white text-[#6B4423] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
+                  {/* Image */}
+                  <div className="relative h-48 overflow-hidden">
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    <div className="absolute top-3 right-3 bg-[#E8DCC4] text-[#3D2817] px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
+                      <Star className="w-4 h-4 fill-current" />
+                      <span>{item.xp} XP</span>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Content */}
+                  <div className="p-4">
+                    <h3 className="text-xl font-bold text-[#3D2817] mb-2">{item.name}</h3>
+
+                    {/* Description */}
+                    <p className="text-sm text-[#6B4423] mb-2 line-clamp-2">{item.description}</p>
+
+                    {/* More Details Button */}
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="flex w-full flex-row-reverse items-center text-sm text-[#6B4423] hover:text-[#3D2817] mb-3 transition"
+                    >
+                      <span className="underline">More Details</span>
+                      <Info className="w-4 h-4 mr-1" />
+                    </button>
+
+                    {/* Price */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-2xl font-bold text-[#6B4423]">₹{item.price}</span>
+                    </div>
+
+                    {/* Add to Cart / Quantity */}
+                    {isInCart(item.id) ? (
+                      <div className="flex items-center justify-between bg-[#E8DCC4] rounded-lg p-2">
+                        <button 
+                          onClick={() => decreaseQuantity(item.id)}
+                          className="bg-white text-[#6B4423] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <span className="text-[#3D2817] font-bold text-lg">{getQuantity(item.id)}</span>
+                        <button 
+                          onClick={() => increaseQuantity(item.id)}
+                          className="bg-white text-[#6B4423] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => addToCart(item.id)}
+                        className="w-full bg-[#6B4423] text-white py-2 rounded-lg hover:bg-[#3D2817] transition font-semibold"
+                      >
+                        Add to Cart
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
@@ -275,8 +267,7 @@ function CustomerMenu() {
       {/* Fixed Category Button */}
       <div className="fixed bottom-6 right-6 z-50">
         <div
-          className={`absolute bottom-16 right-0 bg-white rounded-lg shadow-2xl border border-[#E8DCC4] w-48 overflow-hidden transition-all duration-300 origin-bottom-right ${showCategoryPopup ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-75 translate-y-4 pointer-events-none'
-            }`}
+          className={`absolute bottom-16 right-0 bg-white rounded-lg shadow-2xl border border-[#E8DCC4] w-48 overflow-hidden transition-all duration-300 origin-bottom-right ${showCategoryPopup ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-75 translate-y-4 pointer-events-none'}`}
           style={{ maxHeight: '250px', overflowY: 'auto' }}
         >
           <div className="p-2">
@@ -297,8 +288,7 @@ function CustomerMenu() {
 
         <button
           onClick={() => setShowCategoryPopup(!showCategoryPopup)}
-          className={`bg-[#6B4423] text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-[#3D2817] transition-all duration-300 ${showCategoryPopup ? 'rotate-90' : ''
-            }`}
+          className={`bg-[#6B4423] text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-[#3D2817] transition-all duration-300 ${showCategoryPopup ? 'rotate-90' : ''}`}
         >
           {showCategoryPopup ? <X className="w-6 h-6" /> : <span className="text-xs font-semibold">Menu</span>}
         </button>
@@ -365,33 +355,33 @@ function CustomerMenu() {
                 </div>
               )}
 
-              {/* Add to Cart */}
-              {getItemQuantity(selectedItem.id) === 0 ? (
-                <button
-                  onClick={() => addToCart(selectedItem)}
-                  className="w-full bg-[#6B4423] text-white py-3 rounded-lg hover:bg-[#3D2817] transition font-semibold text-lg"
-                >
-                  Add to Cart - ₹{selectedItem.price}
-                </button>
-              ) : (
+              {/* Add to Cart / Quantity */}
+              {isInCart(selectedItem.id) ? (
                 <div className="flex items-center justify-between bg-[#E8DCC4] rounded-lg p-3">
-                  <button
+                  <button 
                     onClick={() => decreaseQuantity(selectedItem.id)}
                     className="bg-white text-[#6B4423] w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
                   >
                     <Minus className="w-5 h-5" />
                   </button>
                   <div className="text-center">
-                    <span className="text-[#3D2817] font-bold text-xl block">{getItemQuantity(selectedItem.id)}</span>
+                    <span className="text-[#3D2817] font-bold text-xl block">{getQuantity(selectedItem.id)}</span>
                     <span className="text-[#6B4423] text-sm">in cart</span>
                   </div>
-                  <button
+                  <button 
                     onClick={() => increaseQuantity(selectedItem.id)}
                     className="bg-white text-[#6B4423] w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
                   >
                     <Plus className="w-5 h-5" />
                   </button>
                 </div>
+              ) : (
+                <button 
+                  onClick={() => addToCart(selectedItem.id)}
+                  className="w-full bg-[#6B4423] text-white py-3 rounded-lg hover:bg-[#3D2817] transition font-semibold text-lg"
+                >
+                  Add to Cart - ₹{selectedItem.price}
+                </button>
               )}
             </div>
           </div>

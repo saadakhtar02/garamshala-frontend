@@ -42,20 +42,8 @@ function CustomerLogin() {
     e.preventDefault();
     
     if (validateForm()) {
-      const storedData = localStorage.getItem('customerData');
-      
-      if (storedData) {
-        const customer = JSON.parse(storedData);
-        
-        if (customer.email === formData.email && customer.password === formData.password) {
-          localStorage.setItem('isLoggedIn', 'true');
-          navigate('/menu');
-        } else {
-          alert('Invalid email or password');
-        }
-      } else {
-        alert('No account found. Please register first.');
-      }
+      // Static navigation - just go to menu after validation
+      navigate('/menu');
     }
   }
 

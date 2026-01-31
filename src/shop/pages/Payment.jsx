@@ -60,7 +60,7 @@ function Payment() {
 
   function closeModalAndRedirect() {
     setShowSuccessModal(false);
-    navigate('/orders');
+    navigate('/menu/orders');
   }
 
   return (
