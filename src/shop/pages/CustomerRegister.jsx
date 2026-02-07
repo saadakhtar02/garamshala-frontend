@@ -1,78 +1,82 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Coffee, Mail, Lock, User } from 'lucide-react';
+import { Coffee, Mail, Lock, User, Loader2 } from 'lucide-react';
+import axios from 'axios';
+import logo from "../img/logo.png";
+import { motion } from 'framer-motion';
 
 function CustomerRegister() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
-  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   function handleChange(e) {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    setErrors({
-      ...errors,
-      [e.target.name]: ''
-    });
+    setError('');
   }
 
-  function validateForm() {
-    const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }
-
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    
-    if (validateForm()) {
-      // Static navigation - just go to login after validation
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const res = await axios.post(`http://localhost:3000/api/customer/customerRegister`, {
+        username: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
+      console.log(res.data);
+      alert('Registration successful! Please login.');
+
       navigate('/login');
+
+    } catch (error) {
+      setError(error.response?.data?.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#FAF7F2]">
       <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <Coffee className="w-12 h-12 text-[#6B4423]" />
-          </div>
-          <h1 className="text-4xl font-bold text-[#3D2817] mb-2">GaramShala</h1>
-          <p className="text-[#6B4423] text-lg">Benvenuto! Create Your Account</p>
+        <div className="text-center mb-3">
+          <motion.img
+            src={logo}
+            alt="GaramShala Logo"
+            className="mx-auto w-auto h-20"
+            animate={{
+              y: [0, -8, 0],
+              rotate: [0, 3, -3, 0],
+              scale: [1, 1.05, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
         </div>
+
 
         <div className="bg-white rounded-lg shadow-lg p-8 border border-[#E8DCC4]">
           <h2 className="text-2xl font-semibold text-[#3D2817] mb-6">Register</h2>
-          
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-[#6B4423] font-medium mb-2">
@@ -85,13 +89,11 @@ function CustomerRegister() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
+                  required
                   className="w-full pl-12 pr-4 py-3 border border-[#E8DCC4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B6F47] bg-[#FAF7F2] text-[#3D2817]"
                   placeholder="Enter your name"
                 />
               </div>
-              {errors.name && (
-                <p className="text-red-600 text-sm mt-1">{errors.name}</p>
-              )}
             </div>
 
             <div>
@@ -105,13 +107,11 @@ function CustomerRegister() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  required
                   className="w-full pl-12 pr-4 py-3 border border-[#E8DCC4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B6F47] bg-[#FAF7F2] text-[#3D2817]"
                   placeholder="your@email.com"
                 />
               </div>
-              {errors.email && (
-                <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-              )}
             </div>
 
             <div>
@@ -125,52 +125,51 @@ function CustomerRegister() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  required
+                  minLength={6}
                   className="w-full pl-12 pr-4 py-3 border border-[#E8DCC4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B6F47] bg-[#FAF7F2] text-[#3D2817]"
                   placeholder="••••••••"
                 />
               </div>
-              {errors.password && (
-                <p className="text-red-600 text-sm mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-[#6B4423] font-medium mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#6B4423]" />
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3 border border-[#E8DCC4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8B6F47] bg-[#FAF7F2] text-[#3D2817]"
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>
-              )}
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#6B4423] hover:bg-[#3D2817] text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md"
+              disabled={isLoading}
+              className="w-full bg-[#6B4423] hover:bg-[#3D2817] text-white font-semibold py-3 rounded-lg transition duration-300 shadow-md disabled:opacity-50 flex items-center justify-center"
             >
-              Create Account
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-[#6B4423]">
               Already have an account?{' '}
-              <button
+              <motion.button
                 onClick={() => navigate('/login')}
                 className="text-[#3D2817] font-semibold hover:underline"
+                whileHover={{
+                  scale: 1.1,
+                  color: "#8B6F47",
+                }}
+                whileTap={{
+                  scale: 0.95
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 10
+                }}
               >
                 Login here
-              </button>
+              </motion.button>
             </p>
           </div>
         </div>

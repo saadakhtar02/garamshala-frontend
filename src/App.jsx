@@ -22,12 +22,12 @@ function App() {
           <Route path="/login" element={<CustomerLogin />} />
           <Route path="/AdminLogin" element={<AdminLogin />} />
 
-          <Route path='/menu' element={<CustomerLayout />} >
+          <Route path='/Menu' element={<CustomerLayout />} >
             <Route index element={<CustomerMenu />} />
-            <Route path="cart" element={<CustomerViewCart />} />
-            <Route path="cart/payment" element={<Payment />} />
-            <Route path="orders" element={<CustomerOrderHistory />} />
-            <Route path="profile" element={<CustomerProfile />} />
+            <Route path="Cart" element={<CustomerViewCart />} />
+            <Route path="Cart/Payment" element={<Payment />} />
+            <Route path="Orders" element={<CustomerOrderHistory />} />
+            <Route path="Profile" element={<CustomerProfile />} />
           </Route>
 
           <Route path='/AdminDashboard' element={<AdminLayout />} >

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingBag, Star, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 function CustomerOrderHistory() {
   const navigate = useNavigate();
@@ -186,9 +187,20 @@ function CustomerOrderHistory() {
 
         <div className="space-y-4">
           {orders.map((order, index) => (
-            <div
+            <motion.div
               key={order.orderId}
-              className="bg-white rounded-lg shadow-md p-6 border border-[#E8DCC4] transition"
+              className="bg-white rounded-lg shadow-md p-6 border border-[#E8DCC4] transition cursor-pointer"
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-50px" }}
+              transition={{
+                duration: 0.5,
+                delay: index * 0.1,
+                type: "spring",
+                stiffness: 100,
+                damping: 12
+              }}
+              whileTap={{ scale: 0.98 }}
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                 <div>
@@ -202,13 +214,13 @@ function CustomerOrderHistory() {
                   </div>
                   <p className="text-sm text-[#6B4423] ml-12">{order.date}</p>
                 </div>
-                
+
                 <div className="mt-3 sm:mt-0 flex items-center space-x-4">
                   <div className="text-right">
                     <p className="text-sm text-[#6B4423]">Total Amount</p>
                     <p className="text-xl font-bold text-[#3D2817]">₹{order.totalAmount}</p>
                   </div>
-                  
+
                   <div className="text-right">
                     <p className="text-sm text-[#6B4423]">XP Earned</p>
                     <div className="flex items-center space-x-1 text-[#3D2817] font-bold">
@@ -234,7 +246,7 @@ function CustomerOrderHistory() {
               >
                 View Details →
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -275,7 +287,7 @@ function CustomerOrderHistory() {
             </div>
 
             <h3 className="text-xl font-bold text-[#3D2817] mb-4">Items Ordered</h3>
-            
+
             <div className="space-y-3 mb-6">
               {selectedOrder.items.map((item, itemIndex) => (
                 <div

@@ -1,5 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { Plus, Minus, Star, X, Info } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
+import ProductCard from '../components/ProductCard';
+import GaramShalaWelcome from '../components/GaramShalaWelcome';
 
 function CustomerMenu() {
   const menuItems = [
@@ -115,8 +118,9 @@ function CustomerMenu() {
     }
   ];
 
+  // State to control welcome screen visibility
+  const [showWelcome, setShowWelcome] = useState(true);
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
   const [cartItems, setCartItems] = useState({});
 
   const categories = ['All', ...new Set(menuItems.map(item => item.category))];
@@ -126,6 +130,10 @@ function CustomerMenu() {
     acc[category] = menuItems.filter(item => item.category === category);
     return acc;
   }, {});
+
+  function handleWelcomeComplete() {
+    setShowWelcome(false);
+  }
 
   function scrollToCategory(category) {
     setShowCategoryPopup(false);
@@ -137,17 +145,11 @@ function CustomerMenu() {
   }
 
   function addToCart(itemId) {
-    setCartItems(prev => ({
-      ...prev,
-      [itemId]: 1
-    }));
+    setCartItems(prev => ({ ...prev, [itemId]: 1 }));
   }
 
   function increaseQuantity(itemId) {
-    setCartItems(prev => ({
-      ...prev,
-      [itemId]: (prev[itemId] || 0) + 1
-    }));
+    setCartItems(prev => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
   }
 
   function decreaseQuantity(itemId) {
@@ -157,236 +159,189 @@ function CustomerMenu() {
         const { [itemId]: removed, ...rest } = prev;
         return rest;
       }
-      return {
-        ...prev,
-        [itemId]: newQuantity
-      };
+      return { ...prev, [itemId]: newQuantity };
     });
-  }
-
-  function isInCart(itemId) {
-    return cartItems[itemId] && cartItems[itemId] > 0;
   }
 
   function getQuantity(itemId) {
     return cartItems[itemId] || 0;
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const headerVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { type: "spring", stiffness: 100, damping: 12 }
+    }
+  };
+
+  const categoryPopupVariants = {
+    hidden: { opacity: 0, scale: 0.75, y: 20 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 400, damping: 25 }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.75,
+      y: 20,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const menuVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { duration: 0.5 }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-
-        {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-[#3D2817] mb-2">Our Menu</h2>
-          <p className="text-[#6B4423]">Authentic flavors, crafted with love</p>
-        </div>
-
-        {/* Category Sections */}
-        {Object.entries(groupedItems).map(([category, items]) => (
-          <div
-            key={category}
-            ref={el => (categoryRefs.current[category] = el)}
-            className="mb-12 scroll-mt-24"
-          >
-            {/* Category Header */}
-            <div className="flex items-center mb-6">
-              <div className="flex-1 h-px bg-[#E8DCC4]"></div>
-              <h3 className="px-4 text-2xl font-bold text-[#3D2817] bg-[#FAF7F2]">{category}</h3>
-              <div className="flex-1 h-px bg-[#E8DCC4]"></div>
-            </div>
-
-            {/* Items Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {items.map(item => (
-                <div key={item.id} className="bg-white rounded-lg shadow-lg overflow-hidden border border-[#E8DCC4] hover:shadow-xl transition-all duration-300">
-
-                  {/* Image */}
-                  <div className="relative h-48 overflow-hidden">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                    <div className="absolute top-3 right-3 bg-[#E8DCC4] text-[#3D2817] px-3 py-1 rounded-full text-sm font-semibold flex items-center space-x-1">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span>{item.xp} XP</span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4">
-                    <h3 className="text-xl font-bold text-[#3D2817] mb-2">{item.name}</h3>
-
-                    {/* Description */}
-                    <p className="text-sm text-[#6B4423] mb-2 line-clamp-2">{item.description}</p>
-
-                    {/* More Details Button */}
-                    <button
-                      onClick={() => setSelectedItem(item)}
-                      className="flex w-full flex-row-reverse items-center text-sm text-[#6B4423] hover:text-[#3D2817] mb-3 transition"
-                    >
-                      <span className="underline">More Details</span>
-                      <Info className="w-4 h-4 mr-1" />
-                    </button>
-
-                    {/* Price */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-2xl font-bold text-[#6B4423]">₹{item.price}</span>
-                    </div>
-
-                    {/* Add to Cart / Quantity */}
-                    {isInCart(item.id) ? (
-                      <div className="flex items-center justify-between bg-[#E8DCC4] rounded-lg p-2">
-                        <button 
-                          onClick={() => decreaseQuantity(item.id)}
-                          className="bg-white text-[#6B4423] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="text-[#3D2817] font-bold text-lg">{getQuantity(item.id)}</span>
-                        <button 
-                          onClick={() => increaseQuantity(item.id)}
-                          className="bg-white text-[#6B4423] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button 
-                        onClick={() => addToCart(item.id)}
-                        className="w-full bg-[#6B4423] text-white py-2 rounded-lg hover:bg-[#3D2817] transition font-semibold"
-                      >
-                        Add to Cart
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Fixed Category Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <div
-          className={`absolute bottom-16 right-0 bg-white rounded-lg shadow-2xl border border-[#E8DCC4] w-48 overflow-hidden transition-all duration-300 origin-bottom-right ${showCategoryPopup ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-75 translate-y-4 pointer-events-none'}`}
-          style={{ maxHeight: '250px', overflowY: 'auto' }}
-        >
-          <div className="p-2">
-            <div className="px-3 py-2 border-b border-[#E8DCC4] mb-2">
-              <span className="font-semibold text-[#3D2817]">Jump to</span>
-            </div>
-            {categories.map(category => (
-              <button
-                key={category}
-                onClick={() => scrollToCategory(category)}
-                className="w-full text-left px-3 py-2 rounded-lg transition text-[#3D2817] hover:bg-[#6B4423] hover:text-white"
+      <AnimatePresence mode="wait">
+        {showWelcome ? (
+          <AnimatePresence>
+            {showWelcome && (
+              <motion.div
+                className="fixed inset-0 z-[9999]"
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
+                <GaramShalaWelcome onComplete={handleWelcomeComplete} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        ) : (
+          <motion.div
+            key="menu"
+            initial="hidden"
+            animate="visible"
+            variants={menuVariants}
+          >
+            <div className="max-w-7xl mx-auto px-4 py-8">
+              {/* Header */}
+              <motion.div
+                className="mb-8"
+                initial="hidden"
+                animate="visible"
+                variants={headerVariants}
+              >
+                <h2 className="text-3xl font-bold text-[#3D2817] mb-2">Our Menu</h2>
+                <p className="text-[#6B4423]">Authentic flavors, crafted with love</p>
+              </motion.div>
 
-        <button
-          onClick={() => setShowCategoryPopup(!showCategoryPopup)}
-          className={`bg-[#6B4423] text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-[#3D2817] transition-all duration-300 ${showCategoryPopup ? 'rotate-90' : ''}`}
-        >
-          {showCategoryPopup ? <X className="w-6 h-6" /> : <span className="text-xs font-semibold">Menu</span>}
-        </button>
-      </div>
+              {/* Menu Categories & Items */}
+              {Object.entries(groupedItems).map(([category, items]) => (
+                <motion.div
+                  key={category}
+                  ref={el => (categoryRefs.current[category] = el)}
+                  className="mb-12 scroll-mt-24"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: false, margin: "-100px" }}
+                  variants={containerVariants}
+                >
+                  {/* Category Header */}
+                  <motion.div
+                    className="flex items-center mb-6"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: false }}
+                    variants={headerVariants}
+                  >
+                    <div className="flex-1 h-px bg-[#E8DCC4]"></div>
+                    <h3 className="px-4 text-2xl font-bold text-[#3D2817] bg-[#FAF7F2]">{category}</h3>
+                    <div className="flex-1 h-px bg-[#E8DCC4]"></div>
+                  </motion.div>
 
-      {showCategoryPopup && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowCategoryPopup(false)} />
-      )}
-
-      {/* Item Detail Popup */}
-      {selectedItem && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70" onClick={() => setSelectedItem(null)} />
-
-          <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
-            {/* Close Button */}
-            <button
-              onClick={() => setSelectedItem(null)}
-              className="absolute top-4 right-4 z-10 bg-white/90 text-[#3D2817] w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-[#6B4423] hover:text-white transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Image */}
-            <div className="relative h-56 overflow-hidden">
-              <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4">
-                <span className="inline-block bg-[#E8DCC4] text-[#3D2817] px-3 py-1 rounded-full text-sm font-semibold mb-2">
-                  {selectedItem.category}
-                </span>
-                <h2 className="text-2xl font-bold text-white">{selectedItem.name}</h2>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 max-h-[50vh] overflow-y-auto">
-              {/* XP and Price */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2 bg-[#E8DCC4] px-3 py-2 rounded-full">
-                  <Star className="w-5 h-5 text-[#6B4423] fill-current" />
-                  <span className="font-semibold text-[#3D2817]">{selectedItem.xp} XP</span>
-                </div>
-                <span className="text-3xl font-bold text-[#6B4423]">₹{selectedItem.price}</span>
-              </div>
-
-              {/* Description */}
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-[#3D2817] mb-2">Description</h3>
-                <p className="text-[#6B4423] leading-relaxed">{selectedItem.description}</p>
-              </div>
-
-              {/* Ingredients */}
-              {selectedItem.ingredients && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-[#3D2817] mb-2">Ingredients</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedItem.ingredients.map((ingredient, index) => (
-                      <span key={index} className="bg-[#FAF7F2] text-[#6B4423] px-3 py-1 rounded-full text-sm border border-[#E8DCC4]">
-                        {ingredient}
-                      </span>
+                  {/* Items Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {items.map((item) => (
+                      <ProductCard
+                        key={item.id}
+                        item={item}
+                        cartQuantity={getQuantity(item.id)}
+                        onAddToCart={addToCart}
+                        onIncrease={increaseQuantity}
+                        onDecrease={decreaseQuantity}
+                      />
                     ))}
                   </div>
-                </div>
-              )}
-
-              {/* Add to Cart / Quantity */}
-              {isInCart(selectedItem.id) ? (
-                <div className="flex items-center justify-between bg-[#E8DCC4] rounded-lg p-3">
-                  <button 
-                    onClick={() => decreaseQuantity(selectedItem.id)}
-                    className="bg-white text-[#6B4423] w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <div className="text-center">
-                    <span className="text-[#3D2817] font-bold text-xl block">{getQuantity(selectedItem.id)}</span>
-                    <span className="text-[#6B4423] text-sm">in cart</span>
-                  </div>
-                  <button 
-                    onClick={() => increaseQuantity(selectedItem.id)}
-                    className="bg-white text-[#6B4423] w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#6B4423] hover:text-white transition"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => addToCart(selectedItem.id)}
-                  className="w-full bg-[#6B4423] text-white py-3 rounded-lg hover:bg-[#3D2817] transition font-semibold text-lg"
-                >
-                  Add to Cart - ₹{selectedItem.price}
-                </button>
-              )}
+                </motion.div>
+              ))}
             </div>
-          </div>
-        </div>
-      )}
+
+            <div className="fixed bottom-6 right-6 z-70">
+              <AnimatePresence>
+                {showCategoryPopup && (
+                  <motion.div
+                    className="absolute bottom-16 right-0 bg-white rounded-lg shadow-2xl border border-[#E8DCC4] w-48 overflow-hidden"
+                    style={{ maxHeight: '250px', overflowY: 'auto' }}
+                    variants={categoryPopupVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <div className="p-2">
+                      <div className="px-3 py-2 border-b border-[#E8DCC4] mb-2">
+                        <span className="font-semibold text-[#3D2817]">Jump to</span>
+                      </div>
+                      {categories.map((category, index) => (
+                        <motion.button
+                          key={category}
+                          onClick={() => scrollToCategory(category)}
+                          className="w-full text-left px-3 py-2 rounded-lg transition text-[#3D2817] hover:bg-[#6B4423] hover:text-white"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          whileHover={{ x: 5 }}
+                        >
+                          {category}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.button
+                onClick={() => setShowCategoryPopup(!showCategoryPopup)}
+                className="bg-[#6B4423] text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-[#3D2817]"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                animate={{ rotate: showCategoryPopup ? 90 : 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                {showCategoryPopup ? <X className="w-6 h-6" /> : <span className="text-xs font-semibold">Menu</span>}
+              </motion.button>
+            </div>
+
+            <AnimatePresence>
+              {showCategoryPopup && (
+                <motion.div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowCategoryPopup(false)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

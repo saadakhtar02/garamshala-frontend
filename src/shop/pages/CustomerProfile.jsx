@@ -1,38 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Coffee, User, Mail, Star, Award, LogOut } from 'lucide-react';
+import { User, Mail, Star, Award, LogOut } from 'lucide-react';
 
 function CustomerProfile() {
   const navigate = useNavigate();
-  const [customerData, setCustomerData] = useState(null);
 
-  useEffect(() => {
-    const storedData = localStorage.getItem('customerData');
-    if (storedData) {
-      setCustomerData(JSON.parse(storedData));
-    } else {
-      navigate('/login');
-    }
-  }, [navigate]);
+  // Static/Hardcoded customer data
+  const customerData = {
+    name: "Rahul Sharma",
+    email: "rahul.sharma@example.com",
+    xp: 350,
+    phone: "+91 98765 43210",
+    memberSince: "January 2024"
+  };
 
   function handleLogout() {
-    localStorage.removeItem('isLoggedIn');
     navigate('/login');
   }
 
-  if (!customerData) {
-    return null;
-  }
-
-  const xp = customerData.xp || 0;
+  const xp = customerData.xp;
   const level = Math.floor(xp / 100) + 1;
-  const nextLevelXP = level * 100;
   const progressPercentage = ((xp % 100) / 100) * 100;
 
   return (
     <div className="min-h-screen bg-[#FAF7F2]">
-      
-
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-lg p-8 border border-[#E8DCC4] mb-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 mb-8">
@@ -48,6 +39,9 @@ function CustomerProfile() {
                 <Mail className="w-4 h-4" />
                 <span>{customerData.email}</span>
               </div>
+              <p className="text-sm text-[#6B4423] mt-1">
+                Member since {customerData.memberSince}
+              </p>
             </div>
             
             <button

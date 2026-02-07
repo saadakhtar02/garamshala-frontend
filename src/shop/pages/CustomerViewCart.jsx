@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trash2, X, Star, ShoppingBag } from 'lucide-react';
+import { motion } from 'framer-motion';
+
 
 function CustomerViewCart() {
     const navigate = useNavigate();
@@ -61,9 +63,20 @@ function CustomerViewCart() {
 
                 <div className="grid lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-4">
-                        {cart.map((item) => (
-                            <div
+                        {cart.map((item, index) => (
+                            <motion.div
                                 key={item.id}
+                                initial={{ opacity: 0, y: 50 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: false, margin: "-50px" }}
+                                transition={{
+                                    duration: 0.5,
+                                    delay: index * 0.1,
+                                    type: "spring",
+                                    stiffness: 100,
+                                    damping: 12
+                                }}
+                                whileTap={{ scale: 0.98 }}
                                 className="bg-white rounded-lg shadow-md p-6 border border-[#E8DCC4]"
                             >
                                 <div className="flex items-center space-x-4">
@@ -106,7 +119,7 @@ function CustomerViewCart() {
                                         </p>
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
 
